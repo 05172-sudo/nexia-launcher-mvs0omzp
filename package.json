@@ -1,0 +1,38 @@
+{
+  "name": "nexia-launcher",
+  "productName": "Nexia Launcher",
+  "version": "0.1.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable --x64 --publish never"
+  },
+  "dependencies": {
+    "adm-zip": "0.5.16"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "studio.novalabs.nexialauncher",
+    "productName": "Nexia Launcher",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "config.json",
+      "lib/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "assets/icon.png"
+    },
+    "portable": {
+      "artifactName": "nexia-launcher.exe"
+    }
+  }
+}

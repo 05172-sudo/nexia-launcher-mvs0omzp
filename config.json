@@ -1,0 +1,4 @@
+{
+  "msClientId": "PUT_AZURE_CLIENT_ID_HERE",
+  "apiBase": "https://nexia-launcher-api.YOUR-SUBDOMAIN.workers.dev"
+}

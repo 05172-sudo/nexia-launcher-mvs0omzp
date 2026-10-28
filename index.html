@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><title>Nexia Launcher</title>
+<style>
+:root{--bg:#0e1116;--cd:#171b22;--bd:#262d3a;--ac:#6c8cff;--tx:#e8ecf3;--mu:#8b94a7;--er:#ff7a7a;--ok:#5fd39a}
+*{box-sizing:border-box}body{margin:0;height:100vh;background:radial-gradient(1100px 560px at 15% -10%,#1b2440,var(--bg));color:var(--tx);font:14px system-ui,"Noto Sans Thai",sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--bd)}
+header h1{font-size:17px;margin:0;flex:1}#acc{display:flex;align-items:center;gap:10px}#acc img{width:30px;height:30px;border-radius:6px}
+nav{display:flex;gap:6px;padding:12px 22px 0}nav button{background:none;border:0;color:var(--mu);padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}nav button.on{background:var(--cd);color:var(--tx)}
+main{flex:1;overflow:auto;padding:18px 22px}.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:18px;max-width:520px}
+label{display:block;margin:12px 0 5px;color:var(--mu);font-size:12px}select,input{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--bd);background:#0f1319;color:var(--tx);font:inherit}
+button.p{width:100%;margin-top:18px;padding:12px;border:0;border-radius:11px;background:var(--ac);color:#fff;font:600 15px inherit;cursor:pointer}button:disabled{opacity:.5;cursor:default}
+.inst{display:flex;align-items:center;gap:14px;background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px;max-width:640px}.inst b{display:block}.inst small{color:var(--mu)}.inst button{margin:0 0 0 auto;width:auto;padding:9px 20px}
+#foot{padding:10px 22px 14px;border-top:1px solid var(--bd)}.bar{height:7px;background:#0f1319;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .15s}
+#st{margin-top:7px;color:var(--mu);font-size:12px;min-height:16px}#st.er{color:var(--er)}#upd{display:none;background:#26324f;padding:9px 22px;font-size:13px}#upd a{color:#9db4ff;cursor:pointer;margin-left:10px}
+.hide{display:none!important}.code{font:700 26px ui-monospace,monospace;letter-spacing:4px;margin:12px 0}.mu{color:var(--mu)}
+</style></head><body>
+<div id="upd"></div>
+<header><h1>Nexia Launcher <span class="mu" id="v"></span></h1><div id="acc"></div></header>
+
+<section id="login" class="hide" style="padding:40px 22px"><div class="card"><h2 style="margin-top:0">เข้าสู่ระบบด้วย Microsoft</h2>
+  <div id="lbox"><p class="mu">ต้องมีบัญชีที่ซื้อ Minecraft Java Edition</p><button class="p" id="btn-login">เข้าสู่ระบบ</button></div>
+  <div id="cbox" class="hide"><p>เบราว์เซอร์เปิดขึ้นแล้ว — ใส่โค้ดนี้ที่หน้า Microsoft:</p><div class="code" id="code"></div><p class="mu">รอการยืนยัน...</p></div></div></section>
+
+<div id="app" class="hide">
+<nav><button id="t-play" class="on">เล่นเลย</button><button id="t-inst">Instance</button></nav>
+<main>
+ <div id="p-play" class="card">
+  <label>Loader</label><select id="loader"><option value="vanilla">Vanilla</option><option value="fabric">Fabric</option><option value="forge">Forge</option></select>
+  <label>เวอร์ชัน Minecraft</label><select id="mcv"></select>
+  <div id="lvbox" class="hide"><label>เวอร์ชัน Loader</label><select id="lv"></select></div>
+  <label>RAM (MB)</label><input id="ram" type="number" min="1024" step="512" value="3072">
+  <button class="p" id="play">เล่นเลย</button></div>
+ <div id="p-inst" class="hide"><div id="ilist"></div></div>
+</main></div>
+
+<div id="foot"><div class="bar"><i id="bar"></i></div><div id="st"></div></div>
+<script>
+const N=window.nexia,$=id=>document.getElementById(id);
+const st=(t,e)=>{$("st").textContent=t;$("st").className=e?"er":""},bar=r=>$("bar").style.width=Math.round(r*100)+"%";
+let busy=false;
+const setBusy=b=>{busy=b;document.querySelectorAll("button.p,.inst button").forEach(x=>x.disabled=b)};
+N.on("progress",p=>{st(p.label+(p.total?` ${p.done}/${p.total}`:" ..."));bar(p.total?p.done/p.total:0.05)});
+N.on("launched",()=>{st("เปิดเกมแล้ว ✓");bar(1);setBusy(false)});
+N.on("auth-code",d=>{$("lbox").classList.add("hide");$("cbox").classList.remove("hide");$("code").textContent=d.code});
+N.on("update-available",u=>{const b=$("upd");b.style.display="block";b.textContent="มี Nexia Launcher เวอร์ชัน "+u.version+" "+u.notes;
+  const a=document.createElement("a");a.textContent="อัปเดตเลย";a.onclick=async()=>{a.textContent="กำลังโหลด...";try{await N.invoke("update:apply")}catch(e){a.textContent="ล้มเหลว: "+e.message}};b.appendChild(a)});
+
+function showUser(u){
+  $("login").classList.toggle("hide",!!u);$("app").classList.toggle("hide",!u);const a=$("acc");a.textContent="";
+  if(!u)return;const i=document.createElement("img");i.src="https://mc-heads.net/avatar/"+u.uuid+"/60";const s=document.createElement("span");s.textContent=u.name;
+  const o=document.createElement("button");o.textContent="ออก";o.style.cssText="background:none;border:1px solid var(--bd);color:var(--mu);border-radius:7px;padding:4px 10px;cursor:pointer";
+  o.onclick=async()=>{await N.invoke("auth:logout");showUser(null);$("lbox").classList.remove("hide");$("cbox").classList.add("hide")};a.append(i,s,o);
+}
+$("btn-login").onclick=async()=>{try{showUser(await N.invoke("auth:login"));loadVersions();loadInstances()}catch(e){$("lbox").classList.remove("hide");$("cbox").classList.add("hide");st(e.message,1)}};
+
+const opts=(sel,arr)=>{sel.textContent="";arr.forEach(x=>{const o=document.createElement("option");o.textContent=x;sel.appendChild(o)})};
+async function loadVersions(){
+  const l=$("loader").value;st("โหลดรายการเวอร์ชัน...");
+  try{opts($("mcv"),await N.invoke("mc:supported",l));if(localStorage.mc&&[...$("mcv").options].some(o=>o.value===localStorage.mc))$("mcv").value=localStorage.mc;await loadLoaderVer();st("พร้อมเล่น")}catch(e){st(e.message,1)}
+}
+async function loadLoaderVer(){
+  const l=$("loader").value;$("lvbox").classList.toggle("hide",l==="vanilla");if(l==="vanilla")return;
+  opts($("lv"),await N.invoke("mc:loaderVersions",l,$("mcv").value));
+}
+$("loader").onchange=loadVersions;$("mcv").onchange=()=>loadLoaderVer().catch(e=>st(e.message,1));
+$("ram").value=localStorage.ram||3072;
+$("play").onclick=async()=>{
+  const l=$("loader").value;localStorage.mc=$("mcv").value;localStorage.ram=$("ram").value;setBusy(true);
+  try{await N.invoke("play",{loader:l,mc:$("mcv").value,loaderVersion:l==="vanilla"?null:$("lv").value,ramMb:+$("ram").value})}catch(e){st(e.message,1);setBusy(false)}
+};
+
+async function loadInstances(){
+  const box=$("ilist");box.textContent="กำลังโหลด...";
+  try{
+    const d=await N.invoke("instances:list");box.textContent="";
+    if(!d.whitelisted){const p=document.createElement("div");p.className="card";p.textContent="บัญชีนี้ยังไม่ได้รับสิทธิ์ Instance — แจ้งแอดมินให้เพิ่ม Whitelist ด้วยชื่อ: "+d.name;box.appendChild(p);return}
+    if(!d.instances.length){box.textContent="ยังไม่มี Instance สำหรับคุณ";return}
+    d.instances.forEach(i=>{const r=document.createElement("div");r.className="inst";const t=document.createElement("div");
+      const b=document.createElement("b");b.textContent=i.name;const s=document.createElement("small");s.textContent=[i.mc,i.loader==="vanilla"?"":i.loader,i.description].filter(Boolean).join(" · ");t.append(b,s);
+      const g=document.createElement("button");g.className="p";g.textContent="เล่น";g.style.marginTop=0;
+      g.onclick=async()=>{setBusy(true);try{await N.invoke("instances:play",i.id)}catch(e){st(e.message,1);setBusy(false)}};r.append(t,g);box.appendChild(r)});
+  }catch(e){box.textContent="";st(e.message,1)}
+}
+function tab(n){$("p-play").classList.toggle("hide",n!=="play");$("p-inst").classList.toggle("hide",n!=="inst");$("t-play").classList.toggle("on",n==="play");$("t-inst").classList.toggle("on",n==="inst");if(n==="inst"&&!busy)loadInstances()}
+$("t-play").onclick=()=>tab("play");$("t-inst").onclick=()=>tab("inst");
+
+(async()=>{$("v").textContent="v"+await N.invoke("app:version");const u=await N.invoke("auth:restore");showUser(u);if(u){loadVersions();loadInstances()}})();
+</script></body></html>
